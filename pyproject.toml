@@ -1,0 +1,35 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "codeatlas"
+version = "0.1.0"
+description = "Map any Python codebase: module inventory, complexity hotspots and internal import graph."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Edwin Martinez" }]
+keywords = ["ast", "static-analysis", "complexity", "imports", "cli"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Quality Assurance",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+[project.scripts]
+codeatlas = "codeatlas.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/codeatlas"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
