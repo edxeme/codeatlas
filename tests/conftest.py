@@ -33,9 +33,11 @@ class Engine:
             return 1
         return 0
 ''',
-    "pkg/util.py": '''"""Helpers that reuse core."""
+    "pkg/util.py": '''"""Helpers that reuse core and external."""
 
 from .core import simple
+
+from pkg.external import load
 
 
 def twice(x):

@@ -6,6 +6,7 @@ import argparse
 import sys
 from pathlib import Path
 
+from codeatlas.graph import build_graph
 from codeatlas.scanner import ProjectReport, scan_tree
 
 
@@ -70,6 +71,9 @@ def build_parser() -> argparse.ArgumentParser:
         "-n", "--top", type=int, default=10, help="how many functions to show"
     )
 
+    p_graph = sub.add_parser("graph", help="internal import graph as DOT")
+    p_graph.add_argument("path", help="project root to scan")
+
     return parser
 
 
@@ -86,4 +90,6 @@ def main(argv: list[str] | None = None) -> int:
         _print_scan(report)
     elif args.command == "hotspots":
         _print_hotspots(rank_hotspots(report, args.top))
+    elif args.command == "graph":
+        print(build_graph(report).to_dot())
     return 0
