@@ -1,4 +1,6 @@
-"""CLI tests for the scan command."""
+"""CLI tests: text output, JSON output and error handling."""
+
+import json
 
 import pytest
 
@@ -47,6 +49,38 @@ def test_hotspots_rejects_missing_path(capsys):
         main(["hotspots", "/nonexistent/codeatlas-path"])
 
     assert excinfo.value.code == 1
+
+
+def test_scan_json_output(make_project, capsys):
+    assert main(["scan", str(make_project), "--json"]) == 0
+
+    data = json.loads(capsys.readouterr().out)
+    assert data["totals"]["modules"] == 5
+    assert data["totals"]["syntax_errors"] == 1
+    assert {m["path"] for m in data["modules"]} == {
+        "pkg/__init__.py",
+        "pkg/core.py",
+        "pkg/util.py",
+        "pkg/external.py",
+        "broken.py",
+    }
+
+
+def test_hotspots_json_output(make_project, capsys):
+    assert main(["hotspots", str(make_project), "-n", "1", "--json"]) == 0
+
+    data = json.loads(capsys.readouterr().out)
+    assert data == [
+        {"complexity": 8, "location": "pkg/core.py:8", "qualname": "branching"}
+    ]
+
+
+def test_graph_json_output(make_project, capsys):
+    assert main(["graph", str(make_project), "--json"]) == 0
+
+    data = json.loads(capsys.readouterr().out)
+    assert set(data) == {"nodes", "edges"}
+    assert ["pkg.util", "pkg.core"] in data["edges"]
 
 
 def test_scan_rejects_missing_path(capsys):

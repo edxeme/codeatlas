@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from pathlib import Path
 
@@ -55,6 +56,17 @@ def _print_hotspots(ranked: list[tuple]) -> None:
         print(f"{function.complexity:>4}  {location:<48} {function.qualname}")
 
 
+def _ranked_to_dict(ranked: list[tuple]) -> list[dict]:
+    return [
+        {
+            "complexity": function.complexity,
+            "location": f"{module.path}:{function.lineno}",
+            "qualname": function.qualname,
+        }
+        for function, module in ranked
+    ]
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="codeatlas",
@@ -64,15 +76,18 @@ def build_parser() -> argparse.ArgumentParser:
 
     p_scan = sub.add_parser("scan", help="inventory every module under PATH")
     p_scan.add_argument("path", help="project root to scan")
+    p_scan.add_argument("--json", action="store_true", help="emit the full report as JSON")
 
     p_hot = sub.add_parser("hotspots", help="rank the most complex functions")
     p_hot.add_argument("path", help="project root to scan")
     p_hot.add_argument(
         "-n", "--top", type=int, default=10, help="how many functions to show"
     )
+    p_hot.add_argument("--json", action="store_true", help="emit the ranking as JSON")
 
-    p_graph = sub.add_parser("graph", help="internal import graph as DOT")
+    p_graph = sub.add_parser("graph", help="internal import graph as DOT or JSON")
     p_graph.add_argument("path", help="project root to scan")
+    p_graph.add_argument("--json", action="store_true", help="emit nodes and edges as JSON")
 
     return parser
 
@@ -87,9 +102,20 @@ def main(argv: list[str] | None = None) -> int:
 
     report = scan_tree(root)
     if args.command == "scan":
-        _print_scan(report)
+        if args.json:
+            print(json.dumps(report.to_dict(), indent=2))
+        else:
+            _print_scan(report)
     elif args.command == "hotspots":
-        _print_hotspots(rank_hotspots(report, args.top))
+        ranked = rank_hotspots(report, args.top)
+        if args.json:
+            print(json.dumps(_ranked_to_dict(ranked), indent=2))
+        else:
+            _print_hotspots(ranked)
     elif args.command == "graph":
-        print(build_graph(report).to_dot())
+        graph = build_graph(report)
+        if args.json:
+            print(json.dumps(graph.to_dict(), indent=2))
+        else:
+            print(graph.to_dot())
     return 0
