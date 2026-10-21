@@ -44,6 +44,10 @@ def rank_hotspots(report: ProjectReport, top: int) -> list[tuple]:
         for function in module.functions
     ]
     ranked.sort(key=lambda pair: (-pair[0].complexity, -pair[0].loc, pair[0].qualname))
+    if top <= 0:
+        # A negative top would slice from the end of the ranking and show
+        # the *least* interesting functions — return nothing instead.
+        return []
     return ranked[:top]
 
 

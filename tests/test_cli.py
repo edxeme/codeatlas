@@ -83,6 +83,14 @@ def test_graph_json_output(make_project, capsys):
     assert ["pkg.util", "pkg.core"] in data["edges"]
 
 
+def test_hotspots_non_positive_top_is_empty(make_project, capsys):
+    assert main(["hotspots", str(make_project), "-n", "0", "--json"]) == 0
+    assert json.loads(capsys.readouterr().out) == []
+
+    assert main(["hotspots", str(make_project), "-n", "-5", "--json"]) == 0
+    assert json.loads(capsys.readouterr().out) == []
+
+
 def test_scan_rejects_missing_path(capsys):
     with pytest.raises(SystemExit) as excinfo:
         main(["scan", "/nonexistent/codeatlas-path"])

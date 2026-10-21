@@ -66,6 +66,18 @@ def test_syntax_error_is_reported_not_raised(make_project):
     assert "line 1" in broken.syntax_error
 
 
+def test_hostile_files_are_reported_not_fatal(tmp_path):
+    (tmp_path / "bad_encoding.py").write_bytes(b"\xff\xfe\x00\x00")
+    (tmp_path / "nul_bytes.py").write_bytes(b"def f():\n    pass\x00\n")
+
+    report = scan_tree(tmp_path)
+
+    by_path = {m.path: m for m in report.modules}
+    assert "unreadable" in by_path["bad_encoding.py"].syntax_error
+    assert "null bytes" in by_path["nul_bytes.py"].syntax_error
+    assert report.totals["syntax_errors"] == 2
+
+
 def test_skip_directories(make_project):
     (make_project / ".venv" / "lib").mkdir(parents=True)
     (make_project / ".venv" / "lib" / "hidden.py").write_text("x = 1\n")
