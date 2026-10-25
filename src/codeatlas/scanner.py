@@ -209,9 +209,9 @@ def scan_file(path: Path, root: Path) -> ModuleInfo:
     return module
 
 
-def scan_tree(root: Path) -> ProjectReport:
+def scan_tree(root: Path | str) -> ProjectReport:
     """Scan every Python file under *root* into a :class:`ProjectReport`."""
-    root = root.resolve()
+    root = Path(root).resolve()
     return ProjectReport(
         root=str(root),
         modules=[scan_file(path, root) for path in iter_python_files(root)],
